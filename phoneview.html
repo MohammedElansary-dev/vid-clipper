@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Clipper Mobile</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f8f9fa;
+      color: #222;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #e63946;
+      margin-bottom: 15px;
+    }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 15px;
+    }
+    a {
+      color: #007bff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 YouTube Clipper</h1>
+  <p>Paste a YouTube link and choose start/end times:</p>
+
+  <input type="text" id="url" placeholder="YouTube URL" />
+  <input type="text" id="start" placeholder="Start (e.g. 00:01:23)" />
+  <input type="text" id="end" placeholder="End (e.g. 00:02:10)" />
+  <button id="clipBtn">Generate Clip</button>
+
+  <div id="status"></div>
+
+  <script>
+    const backendUrl = "https://ungrieved-darron-choicely.ngrok-free.dev"; // ⚙️ Replace if your ngrok URL changes
+
+    document.getElementById("clipBtn").addEventListener("click", async () => {
+      const url = document.getElementById("url").value.trim();
+      const start = document.getElementById("start").value.trim();
+      const end = document.getElementById("end").value.trim();
+      const status = document.getElementById("status");
+
+      if (!url || !start || !end) {
+        status.innerText = "⚠️ Please fill in all fields.";
+        return;
+      }
+
+      status.innerText = "⏳ Processing your clip...";
+
+      try {
+        const res = await fetch(`${backendUrl}/clip`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, start, end })
+        });
+        const data = await res.json();
+
+        if (data.download_url) {
+          status.innerHTML = `
+            ✅ Clip ready!<br>
+            <a href="${data.download_url}" target="_blank">Download your clip</a>
+          `;
+        } else {
+          status.innerText = "❌ " + (data.error || "An unknown error occurred.");
+        }
+      } catch (err) {
+        console.error("❌ Fetch error:", err);
+        status.innerText = "❌ Failed to connect to backend.";
+      }
+    });
+  </script>
+</body>
+</html>
